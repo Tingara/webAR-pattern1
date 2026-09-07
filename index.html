@@ -37,22 +37,27 @@ let video, videoTexture;
 let model;
 
 // -----------------------------
-// カメラ映像を取得
+// カメラ映像を取得（エラー表示付き）
 // -----------------------------
 async function initCamera() {
   video = document.createElement("video");
   video.setAttribute("autoplay", "");
   video.setAttribute("playsinline", "");
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video:true
-  });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true   // ← 背面指定を外して安定化
+    });
 
-  video.srcObject = stream;
+    video.srcObject = stream;
 
-  return new Promise(resolve => {
-    video.onloadedmetadata = () => resolve();
-  });
+    return new Promise(resolve => {
+      video.onloadedmetadata = () => resolve();
+    });
+
+  } catch (err) {
+    alert("カメラエラー: " + err.name + " / " + err.message);
+  }
 }
 
 // -----------------------------
