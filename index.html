@@ -8,7 +8,6 @@
   body { margin: 0; overflow: hidden; }
   canvas { position: fixed; top: 0; left: 0; }
 
-  /* 撮影ボタン */
   #captureBtn {
     position: fixed;
     bottom: 20px;
@@ -37,7 +36,7 @@ let video, videoTexture;
 let model;
 
 // -----------------------------
-// カメラ映像を取得（エラー表示付き）
+// カメラ映像（エラー表示付き）
 // -----------------------------
 async function initCamera() {
   video = document.createElement("video");
@@ -45,10 +44,7 @@ async function initCamera() {
   video.setAttribute("playsinline", "");
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true   // ← 背面指定を外して安定化
-    });
-
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
 
     return new Promise(resolve => {
@@ -68,7 +64,6 @@ async function init() {
 
   scene = new THREE.Scene();
 
-  // カメラ映像を背景にする
   videoTexture = new THREE.VideoTexture(video);
   scene.background = videoTexture;
 
@@ -84,36 +79,40 @@ async function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // GLBモデル読み込み
+  // -----------------------------
+  // GLBモデル読み込み（エラー表示付き）
+  // -----------------------------
   const loader = new GLTFLoader();
-  loader.load("AR_prd.glb", (gltf) => {
-    model = gltf.scene;
-    model.scale.set(1, 1, 1);
-    scene.add(model);
-  });
+  loader.load(
+    "AR_prd.glb",
+    (gltf) => {
+      model = gltf.scene;
+      model.scale.set(1, 1, 1);
+      scene.add(model);
+    },
+    undefined,
+    (error) => {
+      alert("GLB読み込みエラー: " + error.message);
+    }
+  );
 
   animate();
 }
 
 // -----------------------------
-// 撮影処理
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
 // -----------------------------
 document.getElementById("captureBtn").addEventListener("click", () => {
   const dataURL = renderer.domElement.toDataURL("image/png");
-
   const link = document.createElement("a");
   link.href = dataURL;
   link.download = "ar_photo.png";
   link.click();
 });
-
-// -----------------------------
-// アニメーション
-// -----------------------------
-function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
-}
 
 init();
 </script>
