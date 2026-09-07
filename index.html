@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAR Viewer</title>
+  <!-- model-viewerの読み込み -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    model-viewer { width: 100vw; height: 100vh; }
+    .ar-button {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <model-viewer 
+    src="AR_prd.glb" 
+    alt="AR表示用の3Dモデル"
+    ar 
+    ar-modes="webxr scene-viewer quick-look" 
+    camera-controls 
+    shadow-intensity="1"
+    auto-rotate>
+    
+    <button slot="ar-button" class="ar-button">
+      ARで現実空間に配置する
+    </button>
+    <!-- <button slot="ar-button" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 20px;">
+      ARで表示する
+    </button> -->
+  </model-viewer>
+
+</body>
+</html>
