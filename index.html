@@ -45,7 +45,7 @@ async function initCamera() {
   video.setAttribute("playsinline", "");
 
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "environment" }
+    video: true
   });
 
   video.srcObject = stream;
