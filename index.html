@@ -21,11 +21,43 @@
     font-weight: bold;
     z-index: 10;
   }
+
+  /* 追加：リセットボタン */
+  #resetBtn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10;
+  }
+
+  /* 追加：位置固定ボタン */
+  #lockBtn {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10;
+  }
 </style>
 </head>
 <body>
 
 <button id="captureBtn">📸 撮影</button>
+<button id="resetBtn">🔄 リセット</button>
+<button id="lockBtn">📌 位置固定</button>
 
 <script type="module">
 alert("module start");
@@ -36,6 +68,16 @@ import { GLTFLoader } from "./three/GLTFLoader.js";
 let scene, camera, renderer;
 let video, videoTexture;
 let model;
+
+// 初期状態保存用
+let initialState = {
+  position: { x: 0, y: 0, z: 0 },
+  rotation: { x: 0, y: 0, z: 0 },
+  scale: { x: 1, y: 1, z: 1 }
+};
+
+// 位置固定フラグ
+let isLocked = false;
 
 async function initCamera() {
   video = document.createElement("video");
@@ -92,6 +134,11 @@ async function init() {
       model = gltf.scene;
       model.scale.set(1, 1, 1);
       scene.add(model);
+
+      // 初期状態を記録
+      initialState.position = { x: model.position.x, y: model.position.y, z: model.position.z };
+      initialState.rotation = { x: model.rotation.x, y: model.rotation.y, z: model.rotation.z };
+      initialState.scale = { x: model.scale.x, y: model.scale.y, z: model.scale.z };
     },
     undefined,
     (error) => {
@@ -115,7 +162,40 @@ document.getElementById("captureBtn").addEventListener("click", () => {
   link.click();
 });
 
-init();
+// -----------------------------
+// リセットボタン
+// -----------------------------
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!model) return;
+
+  model.position.set(
+    initialState.position.x,
+    initialState.position.y,
+    initialState.position.z
+  );
+
+  model.rotation.set(
+    initialState.rotation.x,
+    initialState.rotation.y,
+    initialState.rotation.z
+  );
+
+  model.scale.set(
+    initialState.scale.x,
+    initialState.scale.y,
+    initialState.scale.z
+  );
+});
+
+// -----------------------------
+// 位置固定ボタン（トグル）
+// -----------------------------
+document.getElementById("lockBtn").addEventListener("click", () => {
+  isLocked = !isLocked;
+
+  document.getElementById("lockBtn").textContent =
+    isLocked ? "🔓 位置解除" : "📌 位置固定";
+});
 
 // -----------------------------
 // タッチ操作（回転・移動・拡大）
@@ -142,9 +222,6 @@ window.addEventListener("touchstart", (e) => {
 window.addEventListener("touchmove", (e) => {
   if (!model) return;
 
-  // -----------------------------
-  // 1本指 → 回転 or 移動
-  // -----------------------------
   if (e.touches.length === 1) {
     const touch = e.touches[0];
     const dx = touch.clientX - previousTouch.clientX;
@@ -153,21 +230,20 @@ window.addEventListener("touchmove", (e) => {
     const screenHeight = window.innerHeight;
 
     if (touch.clientY < screenHeight * 0.5) {
-      // 画面上半分 → 回転
+      // 回転
       model.rotation.y += dx * 0.01;
       model.rotation.x += dy * 0.01;
     } else {
-      // 画面下半分 → 移動
-      model.position.x += dx * 0.005;
-      model.position.y -= dy * 0.005;
+      // 移動（位置固定中は無効）
+      if (!isLocked) {
+        model.position.x += dx * 0.005;
+        model.position.y -= dy * 0.005;
+      }
     }
 
     previousTouch = touch;
   }
 
-  // -----------------------------
-  // 2本指 → 拡大縮小
-  // -----------------------------
   if (e.touches.length === 2) {
     const newDistance = getDistance(e.touches[0], e.touches[1]);
     const scaleChange = (newDistance - previousDistance) * 0.005;
@@ -185,6 +261,7 @@ window.addEventListener("touchend", () => {
   previousDistance = null;
 });
 
+init();
 </script>
 
 </body>
